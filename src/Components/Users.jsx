@@ -98,29 +98,33 @@ const Users = () => {
   const submitHandle = async (e) => {
     e.preventDefault();
 
-    if (isEditing) {
-      const result = await dispatch(
-        editEmployeeAction({
-          id: editEmployeeId,
-          employee: employeeData,
-        })
-      );
+    try {
+      if (isEditing) {
+        const result = await dispatch(
+          editEmployeeAction({
+            id: editEmployeeId,
+            employee: employeeData,
+          })
+        );
 
-      if (editEmployeeAction.fulfilled.match(result)) {
-        alert("Employee updated successfully!");
+        if (editEmployeeAction.fulfilled.match(result)) {
+          alert("Employee updated successfully!");
 
-        resetForm();
+          resetForm();
+        }
+      } else {
+        const result = await dispatch(
+          createEmployee(employeeData)
+        );
+
+        if (createEmployee.fulfilled.match(result)) {
+          alert("Employee added successfully!");
+
+          resetForm();
+        }
       }
-    } else {
-      const result = await dispatch(
-        createEmployee(employeeData)
-      );
-
-      if (createEmployee.fulfilled.match(result)) {
-        alert("Employee added successfully!");
-
-        resetForm();
-      }
+    } catch (error) {
+      console.error("Employee operation failed:", error);
     }
   };
 
