@@ -66,6 +66,7 @@ const Users = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMounted = useRef(true);
+  const activeRequest = useRef(null);
 
   useEffect(() => {
     isMounted.current = true;
@@ -74,6 +75,7 @@ const Users = () => {
 
     return () => {
       isMounted.current = false;
+      activeRequest.current?.abort?.();
     };
   }, [dispatch]);
 
@@ -156,13 +158,17 @@ const Users = () => {
     setIsSubmitting(true);
 
     try {
+      let request;
+
       if (isEditing) {
-        const result = await dispatch(
+        request = dispatch(
           editEmployeeAction({
             id: editEmployeeId,
             employee: employeeData,
           })
         );
+        activeRequest.current = request;
+        const result = await request;
 
         if (editEmployeeAction.fulfilled.match(result)) {
           if (isMounted.current) {
@@ -178,9 +184,9 @@ const Users = () => {
           );
         }
       } else {
-        const result = await dispatch(
-          createEmployee(employeeData)
-        );
+        request = dispatch(createEmployee(employeeData));
+        activeRequest.current = request;
+        const result = await request;
 
         if (createEmployee.fulfilled.match(result)) {
           if (isMounted.current) {
@@ -205,6 +211,7 @@ const Users = () => {
         );
       }
     } finally {
+      activeRequest.current = null;
       if (isMounted.current) {
         setIsSubmitting(false);
       }
