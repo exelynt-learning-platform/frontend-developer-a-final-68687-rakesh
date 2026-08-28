@@ -9,7 +9,7 @@ import {
   editEmployee as editEmployeeAction,
   removeEmployee,
   fetchEmployeeById,
-} from "../reudux/userSlice";
+} from "../redux/userSlice";
 
 import EmployeeForm from "./EmployeeForm";
 import EmployeeSearch from "./EmployeeSearch";

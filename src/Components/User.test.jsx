@@ -25,7 +25,7 @@ import {
   editEmployee,
   removeEmployee,
   fetchEmployeeById,
-} from "../reudux/userSlice";
+} from "../redux/userSlice";
 
 /* =====================================================
    MOCK REACT REDUX
@@ -40,7 +40,7 @@ vi.mock("react-redux", () => ({
    MOCK REDUX THUNKS
 ===================================================== */
 
-vi.mock("../reudux/userSlice", () => {
+vi.mock("../redux/userSlice", () => {
   const createMockThunk = () => {
     const thunk = vi.fn();
 

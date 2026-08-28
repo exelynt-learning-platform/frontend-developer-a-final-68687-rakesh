@@ -1,10 +1,11 @@
 import axios from "axios";
 
-const EMPLOYEE_API =
-  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/employee";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1";
 
-const COUNTRY_API =
-  "https://669b3f09276e45187d34eb4e.mockapi.io/api/v1/country";
+const EMPLOYEE_API = `${API_BASE_URL}/employee`;
+const COUNTRY_API = `${API_BASE_URL}/country`;
 
 // Get all employees
 export const getEmployees = async () => {
