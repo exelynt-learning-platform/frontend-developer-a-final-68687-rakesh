@@ -14,6 +14,7 @@ import {
 import EmployeeForm from "./EmployeeForm";
 import EmployeeSearch from "./EmployeeSearch";
 import EmployeeList from "./EmployeeList";
+import { getErrorMessage } from "../utils/errorMessage";
 
 const emptyEmployee = () => ({
   name: "",
@@ -107,23 +108,6 @@ const Users = () => {
     setSearchResult(null);
     setActionError("");
     setSuccessMessage("");
-  };
-
-  const getErrorMessage = (payload, defaultMessage) => {
-    if (typeof payload === "string") {
-      return payload;
-    }
-
-    const message =
-      payload?.message ||
-      payload?.response?.data?.message ||
-      payload?.data?.message;
-
-    if (typeof message === "string" && message.trim()) {
-      return message;
-    }
-
-    return defaultMessage;
   };
 
   const submitHandle = async (e) => {

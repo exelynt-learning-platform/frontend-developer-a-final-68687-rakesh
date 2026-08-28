@@ -8,6 +8,7 @@ import {
   deleteEmployee,
   getCountries
 } from "../axios/userApi";
+import { getErrorMessage } from "../utils/errorMessage";
 
 // Get all employees
 export const fetchEmployees = createAsyncThunk(
@@ -17,7 +18,7 @@ export const fetchEmployees = createAsyncThunk(
       return await getEmployees();
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch employees"
+        getErrorMessage(error, "Failed to fetch employees")
       );
     }
   }
@@ -33,7 +34,7 @@ export const fetchEmployeeById = createAsyncThunk(
       return rejectWithValue(
         error.response?.status === 404
           ? "Employee not found"
-          : "Failed to find employee"
+          : getErrorMessage(error, "Failed to find employee")
       );
     }
   }
@@ -47,7 +48,7 @@ export const createEmployee = createAsyncThunk(
       return await addEmployee(employee);
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to add employee"
+        getErrorMessage(error, "Failed to add employee")
       );
     }
   }
@@ -61,7 +62,7 @@ export const editEmployee = createAsyncThunk(
       return await updateEmployee(id, employee);
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to update employee"
+        getErrorMessage(error, "Failed to update employee")
       );
     }
   }
@@ -77,7 +78,7 @@ export const removeEmployee = createAsyncThunk(
       return id;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to delete employee"
+        getErrorMessage(error, "Failed to delete employee")
       );
     }
   }
@@ -91,7 +92,7 @@ export const fetchCountries = createAsyncThunk(
       return await getCountries();
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch countries"
+        getErrorMessage(error, "Failed to fetch countries")
       );
     }
   }

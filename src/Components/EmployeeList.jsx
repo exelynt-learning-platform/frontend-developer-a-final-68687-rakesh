@@ -20,7 +20,7 @@ const EmployeeList = ({
 
       </div>
 
-      {employees.filter(Boolean).map((employee) => (
+      {employees.map((employee) => (
         <div
           key={employee.id}
           className="flex flex-col lg:flex-row lg:justify-around lg:items-center gap-3 border-b-2 border-blue-600 py-4 mt-3"

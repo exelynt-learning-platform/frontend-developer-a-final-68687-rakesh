@@ -18,6 +18,13 @@ const EmployeeForm = ({
     : [];
   const countriesAvailable =
     !countriesLoading && availableCountries.length > 0;
+  const formIsValid = Boolean(
+    !loading &&
+      countrySelected &&
+      employeeData.state.trim() &&
+      employeeData.district.trim() &&
+      employeeData.department.trim()
+  );
 
   return (
     <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">
@@ -157,13 +164,7 @@ const EmployeeForm = ({
 
           <button
             type="submit"
-            disabled={
-              loading ||
-              !countrySelected ||
-              !employeeData.state.trim() ||
-              !employeeData.district.trim() ||
-              !employeeData.department.trim()
-            }
+            disabled={!formIsValid}
             className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400 disabled:bg-gray-400"
           >
             {loading
