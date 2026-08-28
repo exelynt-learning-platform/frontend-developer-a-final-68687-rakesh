@@ -68,6 +68,7 @@ const Users = () => {
   const isMounted = useRef(true);
 
   useEffect(() => {
+    isMounted.current = true;
     dispatch(fetchEmployees());
     dispatch(fetchCountries());
 
