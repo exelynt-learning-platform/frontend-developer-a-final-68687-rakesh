@@ -135,7 +135,9 @@ const employeeSlice = createSlice({
 
       .addCase(fetchEmployees.fulfilled, (state, action) => {
         state.loading = false;
-        state.employees = action.payload;
+        state.employees = Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
 
       .addCase(fetchEmployees.rejected, (state, action) => {
@@ -157,8 +159,16 @@ const employeeSlice = createSlice({
 
         const employee = action.payload;
 
+        if (
+          !employee ||
+          typeof employee !== "object" ||
+          employee.id == null
+        ) {
+          return;
+        }
+
         const index = state.employees.findIndex(
-          (emp) => emp.id === employee.id
+          (emp) => emp?.id === employee.id
         );
 
         if (index !== -1) {
@@ -185,7 +195,9 @@ const employeeSlice = createSlice({
       .addCase(createEmployee.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.employees.push(action.payload);
+        if (action.payload && typeof action.payload === "object") {
+          state.employees.push(action.payload);
+        }
       })
 
       .addCase(createEmployee.rejected, (state, action) => {
@@ -205,8 +217,12 @@ const employeeSlice = createSlice({
       .addCase(editEmployee.fulfilled, (state, action) => {
         state.loading = false;
 
+        if (!action.payload || typeof action.payload !== "object") {
+          return;
+        }
+
         const index = state.employees.findIndex(
-          (emp) => emp.id === action.payload.id
+          (emp) => emp?.id === action.payload.id
         );
 
         if (index !== -1) {

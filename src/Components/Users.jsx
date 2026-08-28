@@ -259,7 +259,8 @@ const Users = () => {
       if (
         fetchEmployeeById.fulfilled.match(result) &&
         result.payload &&
-        typeof result.payload === "object"
+        typeof result.payload === "object" &&
+        result.payload.id != null
       ) {
         setSearchResult(result.payload);
       } else {
@@ -295,11 +296,7 @@ const Users = () => {
   if (searchResult === "not-found") {
     displayedEmployees = [];
   } else if (searchResult && typeof searchResult === "object") {
-    const liveMatch = safeEmployees.find(
-      (emp) => emp?.id === searchResult.id
-    );
-
-    displayedEmployees = liveMatch ? [liveMatch] : [];
+    displayedEmployees = [searchResult];
   }
 
   return (

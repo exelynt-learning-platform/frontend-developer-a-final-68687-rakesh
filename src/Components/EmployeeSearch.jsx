@@ -11,9 +11,19 @@ const EmployeeSearch = ({
   addHandle,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        searchHandle();
+      }}
+      className="flex flex-col sm:flex-row gap-3"
+    >
 
+      <label htmlFor="employee-search" className="sr-only">
+        Search Employee ID
+      </label>
       <input
+        id="employee-search"
         type="text"
         placeholder="Search Employee ID"
         value={searchTerm}
@@ -22,7 +32,7 @@ const EmployeeSearch = ({
       />
 
       <button
-        onClick={searchHandle}
+        type="submit"
         className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400"
       >
         Search
@@ -30,6 +40,7 @@ const EmployeeSearch = ({
 
       {searchResult && (
         <button
+          type="button"
           onClick={clearSearch}
           className="px-6 py-2 bg-gray-500 text-white rounded-full font-semibold"
         >
@@ -39,6 +50,7 @@ const EmployeeSearch = ({
 
       {!showForm && (
         <button
+          type="button"
           onClick={addHandle}
           className="px-7 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400"
         >
@@ -46,7 +58,7 @@ const EmployeeSearch = ({
         </button>
       )}
 
-    </div>
+    </form>
   );
 };
 
