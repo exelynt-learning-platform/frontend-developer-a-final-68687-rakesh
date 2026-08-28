@@ -1,7 +1,18 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, test, expect, vi, beforeEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 
+import {
+  describe,
+  test,
+  expect,
+  vi,
+  beforeEach,
+} from "vitest";
 
 import Users from "./Users";
 
@@ -16,38 +27,91 @@ import {
   fetchEmployeeById,
 } from "../reudux/userSlice";
 
+/* =====================================================
+   MOCK REACT REDUX
+===================================================== */
+
 vi.mock("react-redux", () => ({
   useSelector: vi.fn(),
   useDispatch: vi.fn(),
 }));
 
-vi.mock("../reudux/userSlice", () => ({
-  fetchEmployees: vi.fn(),
-  fetchCountries: vi.fn(),
-  createEmployee: {
-    fulfilled: {
+/* =====================================================
+   MOCK REDUX THUNKS
+===================================================== */
+
+vi.mock("../reudux/userSlice", () => {
+  const createMockThunk = () => {
+    const thunk = vi.fn();
+
+    thunk.fulfilled = {
       match: vi.fn(),
-    },
-  },
-  editEmployee: {
-    fulfilled: {
-      match: vi.fn(),
-    },
-  },
-  removeEmployee: {
-    fulfilled: {
-      match: vi.fn(),
-    },
-  },
-  fetchEmployeeById: {
-    fulfilled: {
-      match: vi.fn(),
-    },
-  },
-}));
+    };
+
+    return thunk;
+  };
+
+  return {
+    fetchEmployees: vi.fn(),
+    fetchCountries: vi.fn(),
+
+    createEmployee: createMockThunk(),
+    editEmployee: createMockThunk(),
+    removeEmployee: createMockThunk(),
+    fetchEmployeeById: createMockThunk(),
+  };
+});
+
+/* =====================================================
+   TESTS
+===================================================== */
 
 describe("Users Component", () => {
   let mockDispatch;
+
+  /* =====================================================
+     DEFAULT STATE
+  ===================================================== */
+
+  const createState = (overrides = {}) => ({
+    Users: {
+      employees: [
+        {
+          id: 1,
+          name: "Rakesh",
+          email: "rakesh@gmail.com",
+          mobile: "9876543210",
+          country: "India",
+          state: "Maharashtra",
+          district: "Pune",
+        },
+      ],
+
+      countries: [
+        {
+          id: 1,
+          name: "India",
+        },
+        {
+          id: 2,
+          name: "USA",
+        },
+      ],
+
+      loading: false,
+      countriesLoading: false,
+      employeeLoading: false,
+
+      error: null,
+      countriesError: null,
+
+      ...overrides,
+    },
+  });
+
+  /* =====================================================
+     BEFORE EACH
+  ===================================================== */
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,36 +121,10 @@ describe("Users Component", () => {
     useDispatch.mockReturnValue(mockDispatch);
 
     useSelector.mockImplementation((selector) =>
-      selector({
-        Users: {
-          employees: [
-            {
-              id: 1,
-              name: "Rakesh",
-              email: "rakesh@gmail.com",
-              mobile: "9876543210",
-              country: "India",
-              state: "Maharashtra",
-              district: "Pune",
-            },
-          ],
-          countries: [
-            {
-              id: 1,
-              name: "India",
-            },
-            {
-              id: 2,
-              name: "USA",
-            },
-          ],
-          loading: false,
-          countriesLoading: false,
-          employeeLoading: false,
-          error: null,
-        },
-      })
+      selector(createState())
     );
+
+    /* Initial API thunks */
 
     fetchEmployees.mockReturnValue({
       type: "fetchEmployees",
@@ -95,7 +133,47 @@ describe("Users Component", () => {
     fetchCountries.mockReturnValue({
       type: "fetchCountries",
     });
+
+    createEmployee.mockReturnValue({
+      type: "createEmployee",
+    });
+
+    editEmployee.mockReturnValue({
+      type: "editEmployee",
+    });
+
+    removeEmployee.mockReturnValue({
+      type: "removeEmployee",
+    });
+
+    fetchEmployeeById.mockReturnValue({
+      type: "fetchEmployeeById",
+    });
+
+    /* Default dispatch */
+
+    mockDispatch.mockResolvedValue({
+      payload: null,
+    });
+
+    /* Default thunk results */
+
+    createEmployee.fulfilled.match.mockReturnValue(false);
+
+    editEmployee.fulfilled.match.mockReturnValue(false);
+
+    removeEmployee.fulfilled.match.mockReturnValue(false);
+
+    fetchEmployeeById.fulfilled.match.mockReturnValue(false);
+
+    /* Default confirm */
+
+    window.confirm = vi.fn(() => false);
   });
+
+  /* =====================================================
+     BASIC RENDER
+  ===================================================== */
 
   test("renders Employee Management heading", () => {
     render(<Users />);
@@ -105,36 +183,56 @@ describe("Users Component", () => {
     ).toBeInTheDocument();
   });
 
+  /* =====================================================
+     FETCH DATA
+  ===================================================== */
+
   test("fetches employees and countries when component loads", () => {
     render(<Users />);
 
     expect(fetchEmployees).toHaveBeenCalled();
+
     expect(fetchCountries).toHaveBeenCalled();
 
     expect(mockDispatch).toHaveBeenCalled();
   });
 
+  /* =====================================================
+     EMPLOYEE DATA
+  ===================================================== */
+
   test("displays employee data", () => {
     render(<Users />);
 
-    expect(screen.getByText("Rakesh")).toBeInTheDocument();
+    expect(
+      screen.getByText("Rakesh")
+    ).toBeInTheDocument();
+
     expect(
       screen.getByText("rakesh@gmail.com")
     ).toBeInTheDocument();
+
     expect(
       screen.getByText("9876543210")
     ).toBeInTheDocument();
-    expect(screen.getByText("India")).toBeInTheDocument();
+
+    expect(
+      screen.getByText("India")
+    ).toBeInTheDocument();
   });
+
+  /* =====================================================
+     ADD EMPLOYEE
+  ===================================================== */
 
   test("opens Add Employee form", () => {
     render(<Users />);
 
-    const addButton = screen.getByRole("button", {
-      name: "Add Employee",
-    });
-
-    fireEvent.click(addButton);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
 
     expect(
       screen.getByRole("heading", {
@@ -155,6 +253,10 @@ describe("Users Component", () => {
     ).toBeInTheDocument();
   });
 
+  /* =====================================================
+     INPUT
+  ===================================================== */
+
   test("allows user to enter employee information", () => {
     render(<Users />);
 
@@ -164,9 +266,14 @@ describe("Users Component", () => {
       })
     );
 
-    const nameInput = screen.getByPlaceholderText("Name");
-    const emailInput = screen.getByPlaceholderText("Email");
-    const mobileInput = screen.getByPlaceholderText("Mobile");
+    const nameInput =
+      screen.getByPlaceholderText("Name");
+
+    const emailInput =
+      screen.getByPlaceholderText("Email");
+
+    const mobileInput =
+      screen.getByPlaceholderText("Mobile");
 
     fireEvent.change(nameInput, {
       target: {
@@ -187,9 +294,19 @@ describe("Users Component", () => {
     });
 
     expect(nameInput).toHaveValue("John");
-    expect(emailInput).toHaveValue("john@gmail.com");
-    expect(mobileInput).toHaveValue("9876543211");
+
+    expect(emailInput).toHaveValue(
+      "john@gmail.com"
+    );
+
+    expect(mobileInput).toHaveValue(
+      "9876543211"
+    );
   });
+
+  /* =====================================================
+     COUNTRIES
+  ===================================================== */
 
   test("displays countries in select box", () => {
     render(<Users />);
@@ -212,6 +329,84 @@ describe("Users Component", () => {
       })
     ).toBeInTheDocument();
   });
+
+  /* =====================================================
+     COUNTRY VALIDATION
+  ===================================================== */
+
+  test("state and district are disabled before country selection", () => {
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
+
+    const locationInputs =
+      screen.getAllByPlaceholderText(
+        "Select country first"
+      );
+
+    expect(locationInputs.length).toBeGreaterThanOrEqual(
+      2
+    );
+
+    expect(locationInputs[0]).toBeDisabled();
+
+    expect(locationInputs[1]).toBeDisabled();
+  });
+
+  /* =====================================================
+     COUNTRY SELECTION
+  ===================================================== */
+
+  test("state and district become available after country selection", () => {
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
+
+    /*
+      Do NOT use:
+      getByRole("combobox", { name: /country/i })
+
+      because the country select in Users.jsx does not
+      expose "Country" as its accessible name.
+
+      The first combobox is the country select.
+    */
+
+    const comboBoxes =
+      screen.getAllByRole("combobox");
+
+    expect(comboBoxes.length).toBeGreaterThanOrEqual(
+      1
+    );
+
+    const countrySelect = comboBoxes[0];
+
+    fireEvent.change(countrySelect, {
+      target: {
+        value: "India",
+      },
+    });
+
+    expect(
+      screen.getByPlaceholderText("State")
+    ).not.toBeDisabled();
+
+    expect(
+      screen.getByPlaceholderText("District")
+    ).not.toBeDisabled();
+  });
+
+  /* =====================================================
+     EDIT
+  ===================================================== */
 
   test("opens edit employee form", () => {
     render(<Users />);
@@ -236,6 +431,10 @@ describe("Users Component", () => {
       screen.getByPlaceholderText("Email")
     ).toHaveValue("rakesh@gmail.com");
   });
+
+  /* =====================================================
+     CANCEL
+  ===================================================== */
 
   test("cancel button closes the form", () => {
     render(<Users />);
@@ -265,11 +464,17 @@ describe("Users Component", () => {
     ).not.toBeInTheDocument();
   });
 
+  /* =====================================================
+     SEARCH INPUT
+  ===================================================== */
+
   test("search input accepts employee ID", () => {
     render(<Users />);
 
     const searchInput =
-      screen.getByPlaceholderText("Search Employee ID");
+      screen.getByPlaceholderText(
+        "Search Employee ID"
+      );
 
     fireEvent.change(searchInput, {
       target: {
@@ -280,7 +485,11 @@ describe("Users Component", () => {
     expect(searchInput).toHaveValue("1");
   });
 
-  test("does not search when search input is empty", async () => {
+  /* =====================================================
+     EMPTY SEARCH
+  ===================================================== */
+
+  test("does not search when search input is empty", () => {
     render(<Users />);
 
     fireEvent.click(
@@ -289,14 +498,16 @@ describe("Users Component", () => {
       })
     );
 
-    expect(fetchEmployeeById).not.toHaveBeenCalled();
+    expect(
+      fetchEmployeeById
+    ).not.toHaveBeenCalled();
   });
 
-  test("clear button clears search result", async () => {
-    fetchEmployeeById.mockReturnValue({
-      type: "fetchEmployeeById",
-    });
+  /* =====================================================
+     SEARCH EMPLOYEE
+  ===================================================== */
 
+  test("searches employee by ID", async () => {
     mockDispatch.mockResolvedValue({
       payload: {
         id: 1,
@@ -304,12 +515,16 @@ describe("Users Component", () => {
       },
     });
 
-    fetchEmployeeById.fulfilled.match.mockReturnValue(true);
+    fetchEmployeeById.fulfilled.match.mockReturnValue(
+      true
+    );
 
     render(<Users />);
 
     const searchInput =
-      screen.getByPlaceholderText("Search Employee ID");
+      screen.getByPlaceholderText(
+        "Search Employee ID"
+      );
 
     fireEvent.change(searchInput, {
       target: {
@@ -324,12 +539,18 @@ describe("Users Component", () => {
     );
 
     await waitFor(() => {
-      expect(fetchEmployeeById).toHaveBeenCalledWith("1");
+      expect(
+        fetchEmployeeById
+      ).toHaveBeenCalledWith("1");
     });
   });
 
-  test("delete employee asks for confirmation", async () => {
-    window.confirm = vi.fn(() => false);
+  /* =====================================================
+     DELETE CONFIRMATION
+  ===================================================== */
+
+  test("delete employee asks for confirmation", () => {
+    window.confirm.mockReturnValue(false);
 
     render(<Users />);
 
@@ -339,21 +560,31 @@ describe("Users Component", () => {
       })
     );
 
-    expect(window.confirm).toHaveBeenCalledWith(
+    expect(
+      window.confirm
+    ).toHaveBeenCalledWith(
       "Are you sure you want to delete this employee?"
     );
 
-    expect(removeEmployee).not.toHaveBeenCalled();
+    expect(
+      removeEmployee
+    ).not.toHaveBeenCalled();
   });
 
-  test("delete employee dispatches removeEmployee after confirmation", async () => {
-    window.confirm = vi.fn(() => true);
+  /* =====================================================
+     DELETE SUCCESS
+  ===================================================== */
 
-    removeEmployee.mockReturnValue({
-      type: "removeEmployee",
+  test("delete employee dispatches removeEmployee after confirmation", async () => {
+    window.confirm.mockReturnValue(true);
+
+    mockDispatch.mockResolvedValue({
+      payload: 1,
     });
 
-    mockDispatch.mockResolvedValue({});
+    removeEmployee.fulfilled.match.mockReturnValue(
+      true
+    );
 
     render(<Users />);
 
@@ -364,91 +595,206 @@ describe("Users Component", () => {
     );
 
     await waitFor(() => {
-      expect(removeEmployee).toHaveBeenCalledWith(1);
+      expect(
+        removeEmployee
+      ).toHaveBeenCalledWith(1);
     });
   });
 
+  /* =====================================================
+     DELETE ERROR
+  ===================================================== */
+
+  test("handles delete employee failure", async () => {
+    window.confirm.mockReturnValue(true);
+
+    mockDispatch.mockResolvedValue({
+      payload: "Failed to delete employee.",
+    });
+
+    removeEmployee.fulfilled.match.mockReturnValue(
+      false
+    );
+
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to delete employee."
+        )
+      ).toBeInTheDocument();
+    });
+  });
+
+  /* =====================================================
+     ERROR
+  ===================================================== */
+
   test("shows error message", () => {
     useSelector.mockImplementation((selector) =>
-      selector({
-        Users: {
+      selector(
+        createState({
           employees: [],
-          countries: [],
-          loading: false,
-          countriesLoading: false,
-          employeeLoading: false,
           error: "Something went wrong",
-        },
-      })
+        })
+      )
     );
 
     render(<Users />);
 
     expect(
-      screen.getByText("Something went wrong")
+      screen.getByText(
+        "Something went wrong"
+      )
     ).toBeInTheDocument();
   });
+
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
   test("shows loading employees message", () => {
     useSelector.mockImplementation((selector) =>
-      selector({
-        Users: {
+      selector(
+        createState({
           employees: [],
-          countries: [],
           loading: true,
-          countriesLoading: false,
-          employeeLoading: false,
-          error: null,
-        },
-      })
+        })
+      )
     );
 
     render(<Users />);
 
     expect(
-      screen.getByText("Loading employees...")
+      screen.getByText(
+        "Loading employees..."
+      )
     ).toBeInTheDocument();
   });
+
+  /* =====================================================
+     SEARCH LOADING
+  ===================================================== */
 
   test("shows searching employee message", () => {
     useSelector.mockImplementation((selector) =>
-      selector({
-        Users: {
+      selector(
+        createState({
           employees: [],
-          countries: [],
-          loading: false,
-          countriesLoading: false,
           employeeLoading: true,
-          error: null,
-        },
-      })
+        })
+      )
     );
 
     render(<Users />);
 
     expect(
-      screen.getByText("Searching employee...")
+      screen.getByText(
+        "Searching employee..."
+      )
     ).toBeInTheDocument();
   });
 
+  /* =====================================================
+     EMPTY EMPLOYEES
+  ===================================================== */
+
   test("shows no employees found when employee list is empty", () => {
     useSelector.mockImplementation((selector) =>
-      selector({
-        Users: {
+      selector(
+        createState({
           employees: [],
-          countries: [],
-          loading: false,
-          countriesLoading: false,
-          employeeLoading: false,
-          error: null,
-        },
-      })
+        })
+      )
     );
 
     render(<Users />);
 
     expect(
-      screen.getByText("No employees found.")
+      screen.getByText(
+        "No employees found."
+      )
     ).toBeInTheDocument();
+  });
+
+  /* =====================================================
+     COUNTRIES LOAD ERROR
+  ===================================================== */
+
+  test("shows countries unavailable when countries fail to load", () => {
+    useSelector.mockImplementation((selector) =>
+      selector(
+        createState({
+          employees: [],
+          countries: [],
+          countriesError:
+            "Failed to fetch countries",
+        })
+      )
+    );
+
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
+
+    expect(
+      screen.getByText(
+        "Countries could not be loaded."
+      )
+    ).toBeInTheDocument();
+  });
+
+  /* =====================================================
+     COUNTRY SELECT DISABLED
+  ===================================================== */
+
+  test("country select is disabled when countries are unavailable", () => {
+    useSelector.mockImplementation((selector) =>
+      selector(
+        createState({
+          employees: [],
+          countries: [],
+          countriesError:
+            "Failed to fetch countries",
+        })
+      )
+    );
+
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
+
+    /*
+      Country select is the first combobox.
+      We intentionally do not search by accessible name
+      because Users.jsx does not expose "Country" as the
+      select's accessible name.
+    */
+
+    const comboBoxes =
+      screen.getAllByRole("combobox");
+
+    expect(comboBoxes.length).toBeGreaterThanOrEqual(
+      1
+    );
+
+    const countrySelect = comboBoxes[0];
+
+    expect(countrySelect).toBeDisabled();
   });
 });

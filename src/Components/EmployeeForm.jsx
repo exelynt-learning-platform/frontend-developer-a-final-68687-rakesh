@@ -1,3 +1,4 @@
+
 import React from "react";
 
 const EmployeeForm = ({
@@ -10,8 +11,10 @@ const EmployeeForm = ({
   countries,
   countriesLoading,
 }) => {
-  // State and district are enabled only after country selection
   const countrySelected = employeeData.country !== "";
+
+  const countriesAvailable =
+    !countriesLoading && countries.length > 0;
 
   return (
     <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">
@@ -61,16 +64,12 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none"
         />
 
-        {/* COUNTRY */}
-
         <select
           name="country"
           value={employeeData.country}
           onChange={handleChange}
           required
-          disabled={
-            countriesLoading || countries.length === 0
-          }
+          disabled={!countriesAvailable}
           className="px-5 py-2 border border-blue-600 rounded-full outline-none disabled:bg-gray-200"
         >
           <option value="">
@@ -91,8 +90,6 @@ const EmployeeForm = ({
           ))}
         </select>
 
-        {/* STATE */}
-
         <input
           type="text"
           name="state"
@@ -109,8 +106,6 @@ const EmployeeForm = ({
           disabled={!countrySelected}
           className="px-5 py-2 border border-blue-600 rounded-full outline-none disabled:bg-gray-200"
         />
-
-        {/* DISTRICT */}
 
         <input
           type="text"
@@ -164,3 +159,4 @@ const EmployeeForm = ({
 };
 
 export default EmployeeForm;
+

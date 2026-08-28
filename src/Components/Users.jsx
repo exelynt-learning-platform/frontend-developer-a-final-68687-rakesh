@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -18,8 +19,8 @@ const Users = () => {
   const dispatch = useDispatch();
 
   const {
-    employees,
-    countries,
+    employees = [],
+    countries = [],
     loading,
     countriesLoading,
     employeeLoading,
@@ -41,21 +42,12 @@ const Users = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState(null);
-
   const [actionError, setActionError] = useState("");
-
-  // ==========================================
-  // GET DATA
-  // ==========================================
 
   useEffect(() => {
     dispatch(fetchEmployees());
     dispatch(fetchCountries());
   }, [dispatch]);
-
-  // ==========================================
-  // HANDLE INPUT
-  // ==========================================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,10 +67,6 @@ const Users = () => {
     }
   };
 
-  // ==========================================
-  // RESET
-  // ==========================================
-
   const resetForm = () => {
     setEmployeeData({
       name: "",
@@ -92,33 +80,42 @@ const Users = () => {
     setIsEditing(false);
     setEditEmployeeId(null);
     setShowForm(false);
-
     setSearchTerm("");
     setSearchResult(null);
     setActionError("");
   };
 
-  // ==========================================
-  // ADD / UPDATE
-  // ==========================================
+  const getErrorMessage = (payload, defaultMessage) => {
+    if (typeof payload === "string") {
+      return payload;
+    }
+
+    const message =
+      payload?.message ||
+      payload?.response?.data?.message ||
+      payload?.data?.message;
+
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+
+    return defaultMessage;
+  };
 
   const submitHandle = async (e) => {
     e.preventDefault();
     setActionError("");
 
-    // Country validation
     if (!employeeData.country) {
       setActionError("Please select a country.");
       return;
     }
 
-    // State validation
     if (!employeeData.state.trim()) {
       setActionError("Please enter state.");
       return;
     }
 
-    // District validation
     if (!employeeData.district.trim()) {
       setActionError("Please enter district.");
       return;
@@ -138,7 +135,10 @@ const Users = () => {
           resetForm();
         } else {
           setActionError(
-            result.payload || "Failed to update employee."
+            getErrorMessage(
+              result.payload,
+              "Failed to update employee."
+            )
           );
         }
       } else {
@@ -151,21 +151,21 @@ const Users = () => {
           resetForm();
         } else {
           setActionError(
-            result.payload || "Failed to add employee."
+            getErrorMessage(
+              result.payload,
+              "Failed to add employee."
+            )
           );
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Employee operation failed:", err);
+
       setActionError(
-        "Something went wrong. Please try again."
+        err?.message || "Something went wrong. Please try again."
       );
     }
   };
-
-  // ==========================================
-  // DELETE
-  // ==========================================
 
   const deleteHandle = async (id) => {
     const confirmDelete = window.confirm(
@@ -185,21 +185,21 @@ const Users = () => {
         alert("Employee deleted successfully!");
       } else {
         setActionError(
-          result.payload || "Failed to delete employee."
+          getErrorMessage(
+            result.payload,
+            "Failed to delete employee."
+          )
         );
       }
     } catch (err) {
-      console.error("Delete error:", err);
+      console.error("Delete employee failed:", err);
 
       setActionError(
-        "Something went wrong while deleting employee."
+        err?.message ||
+          "Something went wrong while deleting employee."
       );
     }
   };
-
-  // ==========================================
-  // EDIT
-  // ==========================================
 
   const editHandle = (employee) => {
     setEmployeeData({
@@ -220,10 +220,6 @@ const Users = () => {
     setActionError("");
   };
 
-  // ==========================================
-  // ADD
-  // ==========================================
-
   const addHandle = () => {
     setEmployeeData({
       name: "",
@@ -243,10 +239,6 @@ const Users = () => {
     setActionError("");
   };
 
-  // ==========================================
-  // SEARCH
-  // ==========================================
-
   const searchHandle = async () => {
     if (!searchTerm.trim()) {
       setSearchResult(null);
@@ -264,28 +256,31 @@ const Users = () => {
         setSearchResult(result.payload);
       } else {
         setSearchResult("not-found");
+
+        setActionError(
+          getErrorMessage(
+            result.payload,
+            "Employee not found."
+          )
+        );
       }
     } catch (err) {
-      console.error(err);
+      console.error("Search employee failed:", err);
 
       setSearchResult("not-found");
-      setActionError("Search failed.");
+
+      setActionError(
+        err?.message ||
+          "Something went wrong while searching."
+      );
     }
   };
-
-  // ==========================================
-  // CLEAR SEARCH
-  // ==========================================
 
   const clearSearch = () => {
     setSearchTerm("");
     setSearchResult(null);
     setActionError("");
   };
-
-  // ==========================================
-  // DISPLAY EMPLOYEES
-  // ==========================================
 
   let displayedEmployees = employees;
 
@@ -298,10 +293,6 @@ const Users = () => {
 
     displayedEmployees = liveMatch ? [liveMatch] : [];
   }
-
-  // ==========================================
-  // UI
-  // ==========================================
 
   return (
     <div className="w-[95%] md:w-[90%] lg:w-[85%] mx-auto">
@@ -326,7 +317,9 @@ const Users = () => {
 
       {error && (
         <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
-          {error}
+          {typeof error === "string"
+            ? error
+            : error?.message || "Something went wrong."}
         </div>
       )}
 
@@ -336,15 +329,11 @@ const Users = () => {
         </div>
       )}
 
-      {/* COUNTRY LOAD ERROR */}
-
       {!countriesLoading && countries.length === 0 && (
         <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
           Countries could not be loaded.
         </div>
       )}
-
-      {/* FORM */}
 
       {showForm && (
         <EmployeeForm
@@ -359,15 +348,11 @@ const Users = () => {
         />
       )}
 
-      {/* SEARCH LOADING */}
-
       {employeeLoading && (
         <p className="text-center text-blue-600 font-semibold mt-5">
           Searching employee...
         </p>
       )}
-
-      {/* MAIN LOADING */}
 
       {loading && !showForm && (
         <p className="text-center text-blue-600 font-semibold mt-5">
@@ -375,15 +360,11 @@ const Users = () => {
         </p>
       )}
 
-      {/* NOT FOUND */}
-
       {searchResult === "not-found" && (
         <p className="text-center text-red-500 text-xl font-semibold mt-8">
           No employee found with ID: {searchTerm}
         </p>
       )}
-
-      {/* EMPLOYEE LIST */}
 
       {!loading && displayedEmployees.length > 0 && (
         <EmployeeList
@@ -392,8 +373,6 @@ const Users = () => {
           deleteHandle={deleteHandle}
         />
       )}
-
-      {/* EMPTY */}
 
       {!loading &&
         displayedEmployees.length === 0 &&
@@ -408,3 +387,4 @@ const Users = () => {
 };
 
 export default Users;
+

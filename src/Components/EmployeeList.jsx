@@ -1,3 +1,4 @@
+
 import React from "react";
 
 const EmployeeList = ({
@@ -7,9 +8,6 @@ const EmployeeList = ({
 }) => {
   return (
     <>
-
-      {/* TABLE HEADER */}
-
       <div className="hidden lg:flex justify-around items-center border-b-2 border-orange-600 py-3 text-orange-600 text-lg font-bold mt-5">
 
         <p className="w-[80px] text-center">ID</p>
@@ -21,8 +19,6 @@ const EmployeeList = ({
         <p className="w-[100px] text-center">Delete</p>
 
       </div>
-
-      {/* EMPLOYEE LIST */}
 
       {employees.map((employee) => (
         <div
@@ -81,9 +77,9 @@ const EmployeeList = ({
 
         </div>
       ))}
-
     </>
   );
 };
 
 export default EmployeeList;
+
