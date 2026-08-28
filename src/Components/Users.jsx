@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -5,7 +6,7 @@ import {
   fetchEmployees,
   fetchCountries,
   createEmployee,
-  editEmployee,
+  editEmployee as editEmployeeAction,
   removeEmployee,
   fetchEmployeeById,
 } from "../reudux/userSlice";
@@ -37,17 +38,13 @@ const Users = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  const [editEmployeeId, setEditEmployeeId] =
-    useState(null);
+  const [editEmployeeId, setEditEmployeeId] = useState(null);
 
-  const [showForm, setShowForm] =
-    useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [searchResult, setSearchResult] =
-    useState(null);
+  const [searchResult, setSearchResult] = useState(null);
 
   // ==========================================
   // GET EMPLOYEES AND COUNTRIES
@@ -88,6 +85,10 @@ const Users = () => {
     setIsEditing(false);
     setEditEmployeeId(null);
     setShowForm(false);
+
+    // Clear search after add/update/cancel
+    setSearchTerm("");
+    setSearchResult(null);
   };
 
   // ==========================================
@@ -99,13 +100,13 @@ const Users = () => {
 
     if (isEditing) {
       const result = await dispatch(
-        editEmployee({
+        editEmployeeAction({
           id: editEmployeeId,
           employee: employeeData,
         })
       );
 
-      if (editEmployee.fulfilled.match(result)) {
+      if (editEmployeeAction.fulfilled.match(result)) {
         alert("Employee updated successfully!");
 
         resetForm();
@@ -136,9 +137,7 @@ const Users = () => {
       return;
     }
 
-    const result = await dispatch(
-      removeEmployee(id)
-    );
+    const result = await dispatch(removeEmployee(id));
 
     if (removeEmployee.fulfilled.match(result)) {
       alert("Employee deleted successfully!");
@@ -160,10 +159,12 @@ const Users = () => {
     });
 
     setIsEditing(true);
-
     setEditEmployeeId(employee.id);
-
     setShowForm(true);
+
+    // Clear old search result when editing
+    setSearchTerm("");
+    setSearchResult(null);
   };
 
   // ==========================================
@@ -171,13 +172,11 @@ const Users = () => {
   // ==========================================
 
   const addHandle = () => {
-    // FIX: clear any active search filter so the list (and the newly
-    // added employee) isn't hidden behind a stale single-result view.
+    // Clear any active search filter
     setSearchTerm("");
     setSearchResult(null);
 
     setIsEditing(false);
-
     setEditEmployeeId(null);
 
     setEmployeeData({
@@ -231,14 +230,10 @@ const Users = () => {
   if (searchResult === "not-found") {
     displayedEmployees = [];
   } else if (searchResult) {
-    // FIX: re-look-up the searched employee inside the live `employees`
-    // array on every render, instead of freezing the old snapshot.
-    // This keeps the on-screen record in sync after an edit, and makes
-    // it disappear correctly after a delete, without needing to
-    // manually clear the search box.
     const liveMatch = employees.find(
       (emp) => emp.id === searchResult.id
     );
+
     displayedEmployees = liveMatch ? [liveMatch] : [];
   }
 
@@ -263,9 +258,7 @@ const Users = () => {
             type="text"
             placeholder="Search Employee ID"
             value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(e.target.value)
-            }
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="px-5 py-2 border-2 border-blue-400 rounded-full outline-none"
           />
 
@@ -311,9 +304,7 @@ const Users = () => {
         <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">
 
           <h2 className="text-3xl font-bold text-blue-600 text-center mb-5">
-            {isEditing
-              ? "Edit Employee"
-              : "Add Employee"}
+            {isEditing ? "Edit Employee" : "Add Employee"}
           </h2>
 
           <form
@@ -372,7 +363,6 @@ const Users = () => {
               required
               className="px-5 py-2 border border-blue-600 rounded-full outline-none"
             >
-
               <option value="">
                 {countriesLoading
                   ? "Loading Countries..."
@@ -382,16 +372,11 @@ const Users = () => {
               {countries.map((country) => (
                 <option
                   key={country.id}
-                  value={
-                    country.name ||
-                    country.country
-                  }
+                  value={country.name || country.country}
                 >
-                  {country.name ||
-                    country.country}
+                  {country.name || country.country}
                 </option>
               ))}
-
             </select>
 
             {/* STATE */}
@@ -478,41 +463,25 @@ const Users = () => {
 
       {/* TABLE HEADER */}
 
-      {!loading &&
-        displayedEmployees.length > 0 && (
+      {!loading && displayedEmployees.length > 0 && (
+        <div className="hidden lg:flex justify-around items-center border-b-2 border-orange-600 py-3 text-orange-600 text-lg font-bold mt-5">
 
-          <div className="hidden lg:flex justify-around items-center border-b-2 border-orange-600 py-3 text-orange-600 text-lg font-bold mt-5">
+          <p className="w-[80px] text-center">ID</p>
 
-            <p className="w-[80px] text-center">
-              ID
-            </p>
+          <p className="w-[150px] text-center">Name</p>
 
-            <p className="w-[150px] text-center">
-              Name
-            </p>
+          <p className="w-[220px] text-center">Email</p>
 
-            <p className="w-[220px] text-center">
-              Email
-            </p>
+          <p className="w-[130px] text-center">Mobile</p>
 
-            <p className="w-[130px] text-center">
-              Mobile
-            </p>
+          <p className="w-[130px] text-center">Country</p>
 
-            <p className="w-[130px] text-center">
-              Country
-            </p>
+          <p className="w-[100px] text-center">Edit</p>
 
-            <p className="w-[100px] text-center">
-              Edit
-            </p>
+          <p className="w-[100px] text-center">Delete</p>
 
-            <p className="w-[100px] text-center">
-              Delete
-            </p>
-
-          </div>
-        )}
+        </div>
+      )}
 
       {/* EMPLOYEE LIST */}
 
@@ -568,9 +537,7 @@ const Users = () => {
             </button>
 
             <button
-              onClick={() =>
-                deleteHandle(employee.id)
-              }
+              onClick={() => deleteHandle(employee.id)}
               className="lg:w-[100px] px-6 py-1 bg-orange-600 text-white rounded-full font-semibold hover:bg-orange-400"
             >
               Delete
@@ -595,3 +562,4 @@ const Users = () => {
 };
 
 export default Users;
+
