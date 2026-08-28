@@ -304,6 +304,27 @@ describe("Users Component", () => {
     );
   });
 
+  test("allows user to enter a department", () => {
+    render(<Users />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Add Employee",
+      })
+    );
+
+    const departmentInput =
+      screen.getByPlaceholderText("Department");
+
+    fireEvent.change(departmentInput, {
+      target: {
+        value: "Engineering",
+      },
+    });
+
+    expect(departmentInput).toHaveValue("Engineering");
+  });
+
   /* =====================================================
      COUNTRIES
   ===================================================== */

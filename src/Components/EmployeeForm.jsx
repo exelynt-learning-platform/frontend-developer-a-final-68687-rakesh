@@ -13,8 +13,11 @@ const EmployeeForm = ({
 }) => {
   const countrySelected = employeeData.country !== "";
 
+  const availableCountries = Array.isArray(countries)
+    ? countries.filter(Boolean)
+    : [];
   const countriesAvailable =
-    !countriesLoading && countries.length > 0;
+    !countriesLoading && availableCountries.length > 0;
 
   return (
     <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">
@@ -28,7 +31,9 @@ const EmployeeForm = ({
         className="flex flex-col gap-3"
       >
 
+        <label htmlFor="employee-name">Name</label>
         <input
+          id="employee-name"
           type="text"
           name="name"
           value={employeeData.name}
@@ -40,7 +45,9 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none"
         />
 
+        <label htmlFor="employee-email">Email</label>
         <input
+          id="employee-email"
           type="email"
           name="email"
           value={employeeData.email}
@@ -51,7 +58,9 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none"
         />
 
+        <label htmlFor="employee-mobile">Mobile</label>
         <input
+          id="employee-mobile"
           type="tel"
           name="mobile"
           value={employeeData.mobile}
@@ -64,7 +73,23 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none"
         />
 
+        <label htmlFor="employee-department">Department</label>
+        <input
+          id="employee-department"
+          type="text"
+          name="department"
+          value={employeeData.department}
+          onChange={handleChange}
+          placeholder="Department"
+          minLength="2"
+          maxLength="50"
+          required
+          className="px-5 py-2 border border-blue-600 rounded-full outline-none"
+        />
+
+        <label htmlFor="employee-country">Country</label>
         <select
+          id="employee-country"
           name="country"
           value={employeeData.country}
           onChange={handleChange}
@@ -75,12 +100,12 @@ const EmployeeForm = ({
           <option value="">
             {countriesLoading
               ? "Loading Countries..."
-              : countries.length === 0
+              : availableCountries.length === 0
               ? "Countries unavailable"
               : "Select Country"}
           </option>
 
-          {countries.map((country) => (
+          {availableCountries.map((country) => (
             <option
               key={country.id}
               value={country.name || country.country}
@@ -90,7 +115,9 @@ const EmployeeForm = ({
           ))}
         </select>
 
+        <label htmlFor="employee-state">State</label>
         <input
+          id="employee-state"
           type="text"
           name="state"
           value={employeeData.state}
@@ -107,7 +134,9 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none disabled:bg-gray-200"
         />
 
+        <label htmlFor="employee-district">District</label>
         <input
+          id="employee-district"
           type="text"
           name="district"
           value={employeeData.district}
@@ -132,7 +161,8 @@ const EmployeeForm = ({
               loading ||
               !countrySelected ||
               !employeeData.state.trim() ||
-              !employeeData.district.trim()
+              !employeeData.district.trim() ||
+              !employeeData.department.trim()
             }
             className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400 disabled:bg-gray-400"
           >

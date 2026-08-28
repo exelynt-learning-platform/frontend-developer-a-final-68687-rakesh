@@ -20,7 +20,7 @@ const EmployeeList = ({
 
       </div>
 
-      {employees.map((employee) => (
+      {employees.filter(Boolean).map((employee) => (
         <div
           key={employee.id}
           className="flex flex-col lg:flex-row lg:justify-around lg:items-center gap-3 border-b-2 border-blue-600 py-4 mt-3"
@@ -30,35 +30,35 @@ const EmployeeList = ({
             <span className="lg:hidden font-bold">
               ID:{" "}
             </span>
-            {employee.id}
+            {employee.id ?? "-"}
           </p>
 
           <p className="lg:w-[150px] text-center font-semibold">
             <span className="lg:hidden font-bold">
               Name:{" "}
             </span>
-            {employee.name}
+            {employee.name || "-"}
           </p>
 
           <p className="lg:w-[220px] text-center font-semibold break-all">
             <span className="lg:hidden font-bold">
               Email:{" "}
             </span>
-            {employee.email}
+            {employee.email || "-"}
           </p>
 
           <p className="lg:w-[130px] text-center font-semibold">
             <span className="lg:hidden font-bold">
               Mobile:{" "}
             </span>
-            {employee.mobile}
+            {employee.mobile || "-"}
           </p>
 
           <p className="lg:w-[130px] text-center font-semibold">
             <span className="lg:hidden font-bold">
               Country:{" "}
             </span>
-            {employee.country}
+            {employee.country || "-"}
           </p>
 
           <button

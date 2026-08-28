@@ -15,6 +15,27 @@ import EmployeeForm from "./EmployeeForm";
 import EmployeeSearch from "./EmployeeSearch";
 import EmployeeList from "./EmployeeList";
 
+const emptyEmployee = () => ({
+  name: "",
+  email: "",
+  mobile: "",
+  country: "",
+  state: "",
+  district: "",
+  department: "",
+});
+
+const normalizeEmployee = (employee = {}) => ({
+  name: typeof employee.name === "string" ? employee.name : "",
+  email: typeof employee.email === "string" ? employee.email : "",
+  mobile: typeof employee.mobile === "string" ? employee.mobile : "",
+  country: typeof employee.country === "string" ? employee.country : "",
+  state: typeof employee.state === "string" ? employee.state : "",
+  district: typeof employee.district === "string" ? employee.district : "",
+  department:
+    typeof employee.department === "string" ? employee.department : "",
+});
+
 const Users = () => {
   const dispatch = useDispatch();
 
@@ -26,14 +47,13 @@ const Users = () => {
     employeeLoading,
     error,
   } = useSelector((state) => state.Users);
+  const safeEmployees = Array.isArray(employees)
+    ? employees.filter(Boolean)
+    : [];
+  const safeCountries = Array.isArray(countries) ? countries : [];
 
   const [employeeData, setEmployeeData] = useState({
-    name: "",
-    email: "",
-    mobile: "",
-    country: "",
-    state: "",
-    district: "",
+    ...emptyEmployee(),
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -68,14 +88,7 @@ const Users = () => {
   };
 
   const resetForm = () => {
-    setEmployeeData({
-      name: "",
-      email: "",
-      mobile: "",
-      country: "",
-      state: "",
-      district: "",
-    });
+    setEmployeeData(emptyEmployee());
 
     setIsEditing(false);
     setEditEmployeeId(null);
@@ -118,6 +131,11 @@ const Users = () => {
 
     if (!employeeData.district.trim()) {
       setActionError("Please enter district.");
+      return;
+    }
+
+    if (!employeeData.department.trim()) {
+      setActionError("Please enter department.");
       return;
     }
 
@@ -202,14 +220,7 @@ const Users = () => {
   };
 
   const editHandle = (employee) => {
-    setEmployeeData({
-      name: employee.name || "",
-      email: employee.email || "",
-      mobile: employee.mobile || "",
-      country: employee.country || "",
-      state: employee.state || "",
-      district: employee.district || "",
-    });
+    setEmployeeData(normalizeEmployee(employee));
 
     setIsEditing(true);
     setEditEmployeeId(employee.id);
@@ -221,14 +232,7 @@ const Users = () => {
   };
 
   const addHandle = () => {
-    setEmployeeData({
-      name: "",
-      email: "",
-      mobile: "",
-      country: "",
-      state: "",
-      district: "",
-    });
+    setEmployeeData(emptyEmployee());
 
     setIsEditing(false);
     setEditEmployeeId(null);
@@ -252,7 +256,11 @@ const Users = () => {
         fetchEmployeeById(searchTerm.trim())
       );
 
-      if (fetchEmployeeById.fulfilled.match(result)) {
+      if (
+        fetchEmployeeById.fulfilled.match(result) &&
+        result.payload &&
+        typeof result.payload === "object"
+      ) {
         setSearchResult(result.payload);
       } else {
         setSearchResult("not-found");
@@ -282,13 +290,13 @@ const Users = () => {
     setActionError("");
   };
 
-  let displayedEmployees = employees;
+  let displayedEmployees = safeEmployees;
 
   if (searchResult === "not-found") {
     displayedEmployees = [];
-  } else if (searchResult) {
-    const liveMatch = employees.find(
-      (emp) => emp.id === searchResult.id
+  } else if (searchResult && typeof searchResult === "object") {
+    const liveMatch = safeEmployees.find(
+      (emp) => emp?.id === searchResult.id
     );
 
     displayedEmployees = liveMatch ? [liveMatch] : [];
@@ -329,7 +337,7 @@ const Users = () => {
         </div>
       )}
 
-      {!countriesLoading && countries.length === 0 && (
+      {!countriesLoading && safeCountries.length === 0 && (
         <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
           Countries could not be loaded.
         </div>
@@ -343,7 +351,7 @@ const Users = () => {
           resetForm={resetForm}
           isEditing={isEditing}
           loading={loading}
-          countries={countries}
+          countries={safeCountries}
           countriesLoading={countriesLoading}
         />
       )}
