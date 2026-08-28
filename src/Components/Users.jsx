@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -63,10 +63,17 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState(null);
   const [actionError, setActionError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMounted = useRef(true);
 
   useEffect(() => {
     dispatch(fetchEmployees());
     dispatch(fetchCountries());
+
+    return () => {
+      isMounted.current = false;
+    };
   }, [dispatch]);
 
   const handleChange = (e) => {
@@ -96,6 +103,7 @@ const Users = () => {
     setSearchTerm("");
     setSearchResult(null);
     setActionError("");
+    setSuccessMessage("");
   };
 
   const getErrorMessage = (payload, defaultMessage) => {
@@ -118,6 +126,11 @@ const Users = () => {
   const submitHandle = async (e) => {
     e.preventDefault();
     setActionError("");
+    setSuccessMessage("");
+
+    if (isSubmitting) {
+      return;
+    }
 
     if (!employeeData.country) {
       setActionError("Please select a country.");
@@ -139,6 +152,8 @@ const Users = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       if (isEditing) {
         const result = await dispatch(
@@ -149,8 +164,10 @@ const Users = () => {
         );
 
         if (editEmployeeAction.fulfilled.match(result)) {
-          alert("Employee updated successfully!");
-          resetForm();
+          if (isMounted.current) {
+            resetForm();
+            setSuccessMessage("Employee updated successfully.");
+          }
         } else {
           setActionError(
             getErrorMessage(
@@ -165,8 +182,10 @@ const Users = () => {
         );
 
         if (createEmployee.fulfilled.match(result)) {
-          alert("Employee added successfully!");
-          resetForm();
+          if (isMounted.current) {
+            resetForm();
+            setSuccessMessage("Employee added successfully.");
+          }
         } else {
           setActionError(
             getErrorMessage(
@@ -179,9 +198,15 @@ const Users = () => {
     } catch (err) {
       console.error("Employee operation failed:", err);
 
-      setActionError(
-        err?.message || "Something went wrong. Please try again."
-      );
+      if (isMounted.current) {
+        setActionError(
+          err?.message || "Something went wrong. Please try again."
+        );
+      }
+    } finally {
+      if (isMounted.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -200,7 +225,7 @@ const Users = () => {
       const result = await dispatch(removeEmployee(id));
 
       if (removeEmployee.fulfilled.match(result)) {
-        alert("Employee deleted successfully!");
+        setSuccessMessage("Employee deleted successfully.");
       } else {
         setActionError(
           getErrorMessage(
@@ -229,6 +254,7 @@ const Users = () => {
     setSearchTerm("");
     setSearchResult(null);
     setActionError("");
+    setSuccessMessage("");
   };
 
   const addHandle = () => {
@@ -241,6 +267,7 @@ const Users = () => {
     setSearchTerm("");
     setSearchResult(null);
     setActionError("");
+    setSuccessMessage("");
   };
 
   const searchHandle = async () => {
@@ -334,6 +361,12 @@ const Users = () => {
         </div>
       )}
 
+      {successMessage && (
+        <div className="mt-4 p-3 bg-green-100 text-green-700 text-center rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       {!countriesLoading && safeCountries.length === 0 && (
         <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
           Countries could not be loaded.
@@ -347,7 +380,7 @@ const Users = () => {
           submitHandle={submitHandle}
           resetForm={resetForm}
           isEditing={isEditing}
-          loading={loading}
+          loading={loading || isSubmitting}
           countries={safeCountries}
           countriesLoading={countriesLoading}
         />
