@@ -1,4 +1,3 @@
-
 import React from "react";
 import { validateEmployee } from "../utils/employeeValidation";
 
@@ -12,18 +11,20 @@ const EmployeeForm = ({
   countries,
   countriesLoading,
 }) => {
-  const countrySelected = employeeData.country !== "";
+  const countrySelected = Boolean(employeeData.country);
 
   const availableCountries = Array.isArray(countries)
     ? countries.filter(Boolean)
     : [];
+
   const countriesAvailable =
     !countriesLoading && availableCountries.length > 0;
-  const formIsValid = !loading && !validateEmployee(employeeData);
+
+  const formIsValid =
+    !loading && !validateEmployee(employeeData);
 
   return (
     <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">
-
       <h2 className="text-3xl font-bold text-blue-600 text-center mb-5">
         {isEditing ? "Edit Employee" : "Add Employee"}
       </h2>
@@ -32,13 +33,13 @@ const EmployeeForm = ({
         onSubmit={submitHandle}
         className="flex flex-col gap-3"
       >
-
         <label htmlFor="employee-name">Name</label>
+
         <input
           id="employee-name"
           type="text"
           name="name"
-          value={employeeData.name}
+          value={employeeData.name || ""}
           onChange={handleChange}
           placeholder="Name"
           minLength="2"
@@ -48,11 +49,12 @@ const EmployeeForm = ({
         />
 
         <label htmlFor="employee-email">Email</label>
+
         <input
           id="employee-email"
           type="email"
           name="email"
-          value={employeeData.email}
+          value={employeeData.email || ""}
           onChange={handleChange}
           placeholder="Email"
           maxLength="100"
@@ -61,11 +63,12 @@ const EmployeeForm = ({
         />
 
         <label htmlFor="employee-mobile">Mobile</label>
+
         <input
           id="employee-mobile"
           type="tel"
           name="mobile"
-          value={employeeData.mobile}
+          value={employeeData.mobile || ""}
           onChange={handleChange}
           placeholder="Mobile"
           minLength="10"
@@ -75,12 +78,15 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none"
         />
 
-        <label htmlFor="employee-department">Department</label>
+        <label htmlFor="employee-department">
+          Department
+        </label>
+
         <input
           id="employee-department"
           type="text"
           name="department"
-          value={employeeData.department}
+          value={employeeData.department || ""}
           onChange={handleChange}
           placeholder="Department"
           minLength="2"
@@ -90,13 +96,15 @@ const EmployeeForm = ({
         />
 
         <label htmlFor="employee-country">Country</label>
+
         <select
           id="employee-country"
           name="country"
-          value={employeeData.country}
+          value={employeeData.country || ""}
           onChange={handleChange}
           required
           disabled={!countriesAvailable}
+          aria-label="Country"
           className="px-5 py-2 border border-blue-600 rounded-full outline-none disabled:bg-gray-200"
         >
           <option value="">
@@ -107,22 +115,28 @@ const EmployeeForm = ({
               : "Select Country"}
           </option>
 
-          {availableCountries.map((country) => (
-            <option
-              key={country.id}
-              value={country.name || country.country}
-            >
-              {country.name || country.country}
-            </option>
-          ))}
+          {availableCountries.map((country) => {
+            const countryName =
+              country.name || country.country;
+
+            return (
+              <option
+                key={country.id}
+                value={countryName}
+              >
+                {countryName}
+              </option>
+            );
+          })}
         </select>
 
         <label htmlFor="employee-state">State</label>
+
         <input
           id="employee-state"
           type="text"
           name="state"
-          value={employeeData.state}
+          value={employeeData.state || ""}
           onChange={handleChange}
           placeholder={
             countrySelected
@@ -136,12 +150,15 @@ const EmployeeForm = ({
           className="px-5 py-2 border border-blue-600 rounded-full outline-none disabled:bg-gray-200"
         />
 
-        <label htmlFor="employee-district">District</label>
+        <label htmlFor="employee-district">
+          District
+        </label>
+
         <input
           id="employee-district"
           type="text"
           name="district"
-          value={employeeData.district}
+          value={employeeData.district || ""}
           onChange={handleChange}
           placeholder={
             countrySelected
@@ -156,7 +173,6 @@ const EmployeeForm = ({
         />
 
         <div className="flex justify-center gap-3 mt-3">
-
           <button
             type="submit"
             disabled={!formIsValid}
@@ -176,13 +192,10 @@ const EmployeeForm = ({
           >
             Cancel
           </button>
-
         </div>
-
       </form>
     </div>
   );
 };
 
 export default EmployeeForm;
-

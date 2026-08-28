@@ -1,12 +1,12 @@
 
-import React, { useEffect, useRef, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   fetchEmployees,
   fetchCountries,
   createEmployee,
-  editEmployee as editEmployeeAction,
+  editEmployee,
   removeEmployee,
   fetchEmployeeById,
 } from "../redux/userSlice";
@@ -15,10 +15,8 @@ import EmployeeForm from "./EmployeeForm";
 import EmployeeSearch from "./EmployeeSearch";
 import EmployeeList from "./EmployeeList";
 import FeedbackMessage from "./FeedbackMessage";
-import { getErrorMessage } from "../utils/errorMessage";
-import { validateEmployee } from "../utils/employeeValidation";
 
-const emptyEmployee = () => ({
+const emptyEmployee = {
   name: "",
   email: "",
   mobile: "",
@@ -26,172 +24,131 @@ const emptyEmployee = () => ({
   state: "",
   district: "",
   department: "",
-});
-
-const normalizeEmployee = (employee = {}) => ({
-  name: typeof employee.name === "string" ? employee.name : "",
-  email: typeof employee.email === "string" ? employee.email : "",
-  mobile: typeof employee.mobile === "string" ? employee.mobile : "",
-  country: typeof employee.country === "string" ? employee.country : "",
-  state: typeof employee.state === "string" ? employee.state : "",
-  district: typeof employee.district === "string" ? employee.district : "",
-  department:
-    typeof employee.department === "string" ? employee.department : "",
-});
+};
 
 const Users = () => {
   const dispatch = useDispatch();
 
   const {
-    employees = [],
-    countries = [],
+    employees,
+    countries,
     loading,
     countriesLoading,
     employeeLoading,
     error,
+    countriesError,
   } = useSelector((state) => state.Users);
-  const safeEmployees = Array.isArray(employees)
-    ? employees.filter(Boolean)
-    : [];
-  const safeCountries = Array.isArray(countries) ? countries : [];
 
-  const [employeeData, setEmployeeData] = useState({
-    ...emptyEmployee(),
-  });
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editEmployeeId, setEditEmployeeId] = useState(null);
+  const [employeeData, setEmployeeData] = useState(emptyEmployee);
   const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResult, setSearchResult] = useState(null);
+
   const [actionError, setActionError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isMounted = useRef(true);
-  const activeRequest = useRef(null);
 
   useEffect(() => {
-    isMounted.current = true;
     dispatch(fetchEmployees());
     dispatch(fetchCountries());
-
-    return () => {
-      isMounted.current = false;
-      activeRequest.current?.abort?.();
-    };
   }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "country") {
-      handleCountryChange(value);
-      return;
+      setEmployeeData({
+        ...employeeData,
+        country: value,
+        state: "",
+        district: "",
+      });
+    } else {
+      setEmployeeData({
+        ...employeeData,
+        [name]: value,
+      });
     }
-
-    setEmployeeData((currentData) => ({
-      ...currentData,
-      [name]: value,
-    }));
   };
 
-  const handleCountryChange = (country) => {
-    setEmployeeData((currentData) => ({
-      ...currentData,
-      country,
-      state: "",
-      district: "",
-    }));
-  };
-
-  const resetForm = () => {
-    setEmployeeData(emptyEmployee());
-
+  const addEmployeeHandle = () => {
+    setEmployeeData(emptyEmployee);
     setIsEditing(false);
-    setEditEmployeeId(null);
-    setShowForm(false);
-    setSearchTerm("");
-    setSearchResult(null);
+    setEditId(null);
+    setShowForm(true);
     setActionError("");
     setSuccessMessage("");
+  };
+
+  const editEmployeeHandle = (employee) => {
+    setEmployeeData({
+      name: employee.name || "",
+      email: employee.email || "",
+      mobile: employee.mobile || "",
+      country: employee.country || "",
+      state: employee.state || "",
+      district: employee.district || "",
+      department: employee.department || "",
+    });
+
+    setIsEditing(true);
+    setEditId(employee.id);
+    setShowForm(true);
+    setActionError("");
+    setSuccessMessage("");
+  };
+
+  const cancelHandle = () => {
+    setEmployeeData(emptyEmployee);
+    setShowForm(false);
+    setIsEditing(false);
+    setEditId(null);
+    setActionError("");
   };
 
   const submitHandle = async (e) => {
     e.preventDefault();
+
     setActionError("");
     setSuccessMessage("");
 
-    if (isSubmitting) {
-      return;
-    }
-
-    const validationError = validateEmployee(employeeData);
-    if (validationError) {
-      setActionError(validationError);
-      return;
-    }
-
-    setIsSubmitting(true);
-
     try {
-      let request;
+      let result;
 
       if (isEditing) {
-        request = dispatch(
-          editEmployeeAction({
-            id: editEmployeeId,
+        result = await dispatch(
+          editEmployee({
+            id: editId,
             employee: employeeData,
           })
         );
-        activeRequest.current = request;
-        const result = await request;
 
-        if (editEmployeeAction.fulfilled.match(result)) {
-          if (isMounted.current) {
-            resetForm();
-            setSuccessMessage("Employee updated successfully.");
-          }
+        if (editEmployee.fulfilled.match(result)) {
+          setSuccessMessage("Employee updated successfully.");
+          cancelHandle();
         } else {
           setActionError(
-            getErrorMessage(
-              result.payload,
-              "Failed to update employee."
-            )
+            result.payload || "Failed to update employee."
           );
         }
       } else {
-        request = dispatch(createEmployee(employeeData));
-        activeRequest.current = request;
-        const result = await request;
+        result = await dispatch(
+          createEmployee(employeeData)
+        );
 
         if (createEmployee.fulfilled.match(result)) {
-          if (isMounted.current) {
-            resetForm();
-            setSuccessMessage("Employee added successfully.");
-          }
+          setSuccessMessage("Employee added successfully.");
+          cancelHandle();
         } else {
           setActionError(
-            getErrorMessage(
-              result.payload,
-              "Failed to add employee."
-            )
+            result.payload || "Failed to add employee."
           );
         }
       }
-    } catch (err) {
-      console.error("Employee operation failed:", err);
-
-      if (isMounted.current) {
-        setActionError(
-          err?.message || "Something went wrong. Please try again."
-        );
-      }
-    } finally {
-      activeRequest.current = null;
-      if (isMounted.current) {
-        setIsSubmitting(false);
-      }
+    } catch (error) {
+      setActionError("Something went wrong.");
     }
   };
 
@@ -205,54 +162,23 @@ const Users = () => {
     }
 
     setActionError("");
+    setSuccessMessage("");
 
     try {
       const result = await dispatch(removeEmployee(id));
 
       if (removeEmployee.fulfilled.match(result)) {
-        setSuccessMessage("Employee deleted successfully.");
+        setSuccessMessage(
+          "Employee deleted successfully."
+        );
       } else {
         setActionError(
-          getErrorMessage(
-            result.payload,
-            "Failed to delete employee."
-          )
+          result.payload || "Failed to delete employee."
         );
       }
-    } catch (err) {
-      console.error("Delete employee failed:", err);
-
-      setActionError(
-        err?.message ||
-          "Something went wrong while deleting employee."
-      );
+    } catch (error) {
+      setActionError("Something went wrong.");
     }
-  };
-
-  const editHandle = (employee) => {
-    setEmployeeData(normalizeEmployee(employee));
-
-    setIsEditing(true);
-    setEditEmployeeId(employee.id);
-    setShowForm(true);
-
-    setSearchTerm("");
-    setSearchResult(null);
-    setActionError("");
-    setSuccessMessage("");
-  };
-
-  const addHandle = () => {
-    setEmployeeData(emptyEmployee());
-
-    setIsEditing(false);
-    setEditEmployeeId(null);
-    setShowForm(true);
-
-    setSearchTerm("");
-    setSearchResult(null);
-    setActionError("");
-    setSuccessMessage("");
   };
 
   const searchHandle = async () => {
@@ -270,30 +196,18 @@ const Users = () => {
 
       if (
         fetchEmployeeById.fulfilled.match(result) &&
-        result.payload &&
-        typeof result.payload === "object" &&
-        result.payload.id != null
+        result.payload
       ) {
         setSearchResult(result.payload);
       } else {
         setSearchResult("not-found");
-
         setActionError(
-          getErrorMessage(
-            result.payload,
-            "Employee not found."
-          )
+          result.payload || "Employee not found."
         );
       }
-    } catch (err) {
-      console.error("Search employee failed:", err);
-
+    } catch (error) {
       setSearchResult("not-found");
-
-      setActionError(
-        err?.message ||
-          "Something went wrong while searching."
-      );
+      setActionError("Employee not found.");
     }
   };
 
@@ -303,18 +217,23 @@ const Users = () => {
     setActionError("");
   };
 
-  let displayedEmployees = safeEmployees;
+  let employeesToShow = employees || [];
 
   if (searchResult === "not-found") {
-    displayedEmployees = [];
-  } else if (searchResult && typeof searchResult === "object") {
-    displayedEmployees = [searchResult];
+    employeesToShow = [];
+  }
+
+  if (
+    searchResult &&
+    typeof searchResult === "object"
+  ) {
+    employeesToShow = [searchResult];
   }
 
   return (
     <div className="w-[95%] md:w-[90%] lg:w-[85%] mx-auto">
 
-      <div className="w-full flex flex-col lg:flex-row justify-between items-center gap-4 border-b-2 border-blue-500 py-4 px-4">
+      <div className="flex flex-col lg:flex-row justify-between items-center gap-4 border-b-2 border-blue-500 py-4">
 
         <h2 className="text-2xl md:text-4xl font-bold text-blue-600">
           Employee Management
@@ -327,14 +246,14 @@ const Users = () => {
           clearSearch={clearSearch}
           searchResult={searchResult}
           showForm={showForm}
-          addHandle={addHandle}
+          addHandle={addEmployeeHandle}
         />
 
       </div>
 
       {error && (
         <FeedbackMessage>
-          {getErrorMessage(error, "Something went wrong.")}
+          {error}
         </FeedbackMessage>
       )}
 
@@ -350,7 +269,7 @@ const Users = () => {
         </FeedbackMessage>
       )}
 
-      {!countriesLoading && safeCountries.length === 0 && (
+      {countriesError && (
         <FeedbackMessage>
           Countries could not be loaded.
         </FeedbackMessage>
@@ -361,10 +280,10 @@ const Users = () => {
           employeeData={employeeData}
           handleChange={handleChange}
           submitHandle={submitHandle}
-          resetForm={resetForm}
+          resetForm={cancelHandle}
           isEditing={isEditing}
-          loading={loading || isSubmitting}
-          countries={safeCountries}
+          loading={loading}
+          countries={countries || []}
           countriesLoading={countriesLoading}
         />
       )}
@@ -381,27 +300,28 @@ const Users = () => {
         </p>
       )}
 
-      {searchResult === "not-found" && (
-        <p className="text-center text-red-500 text-xl font-semibold mt-8">
-          No employee found with ID: {searchTerm}
-        </p>
-      )}
-
-      {!loading && displayedEmployees.length > 0 && (
-        <EmployeeList
-          employees={displayedEmployees}
-          editHandle={editHandle}
-          deleteHandle={deleteHandle}
-        />
-      )}
+      {!loading &&
+        employeesToShow.length > 0 && (
+          <EmployeeList
+            employees={employeesToShow}
+            editHandle={editEmployeeHandle}
+            deleteHandle={deleteHandle}
+          />
+        )}
 
       {!loading &&
-        displayedEmployees.length === 0 &&
+        employeesToShow.length === 0 &&
         searchResult !== "not-found" && (
           <p className="text-center mt-8 text-gray-600 text-lg">
             No employees found.
           </p>
         )}
+
+      {searchResult === "not-found" && (
+        <p className="text-center mt-8 text-red-500 text-xl font-semibold">
+          No employee found with ID: {searchTerm}
+        </p>
+      )}
 
     </div>
   );

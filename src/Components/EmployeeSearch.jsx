@@ -1,4 +1,3 @@
-
 import React from "react";
 
 const EmployeeSearch = ({
@@ -18,10 +17,13 @@ const EmployeeSearch = ({
       }}
       className="flex flex-col sm:flex-row gap-3"
     >
-
-      <label htmlFor="employee-search" className="sr-only">
+      <label
+        htmlFor="employee-search"
+        className="sr-only"
+      >
         Search Employee ID
       </label>
+
       <input
         id="employee-search"
         type="text"
@@ -33,6 +35,7 @@ const EmployeeSearch = ({
 
       <button
         type="submit"
+        aria-label="Search"
         className="px-6 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400"
       >
         Search
@@ -52,15 +55,14 @@ const EmployeeSearch = ({
         <button
           type="button"
           onClick={addHandle}
+          aria-label="Add Employee"
           className="px-7 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-400"
         >
           Add Employee
         </button>
       )}
-
     </form>
   );
 };
 
 export default EmployeeSearch;
-

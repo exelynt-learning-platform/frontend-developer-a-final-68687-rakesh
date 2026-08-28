@@ -8,15 +8,21 @@ const widthClasses = {
   country: "lg:w-[130px]",
 };
 
-const EmployeeField = ({ label, value, field, breakAll = false }) => (
+const EmployeeField = ({
+  label,
+  value,
+  field,
+  breakAll = false,
+}) => (
   <p
-    className={`${widthClasses[field]} text-center font-semibold${
+    className={`${widthClasses[field] || ""} text-center font-semibold${
       breakAll ? " break-all" : ""
     }`}
   >
     <span className="lg:hidden font-bold">
-      {label}: {" "}
+      {label}:{" "}
     </span>
+
     {value ?? "-"}
   </p>
 );

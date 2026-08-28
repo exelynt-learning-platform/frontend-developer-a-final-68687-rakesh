@@ -5,15 +5,20 @@ const stylesByTone = {
   success: "bg-green-100 text-green-700",
 };
 
-const FeedbackMessage = ({ children, tone = "error" }) => (
-  <div
-    role="alert"
-    className={`mt-4 p-3 text-center rounded-lg ${
-      stylesByTone[tone] || stylesByTone.error
-    }`}
-  >
-    {children}
-  </div>
-);
+const FeedbackMessage = ({
+  children,
+  tone = "error",
+}) => {
+  return (
+    <div
+      role="alert"
+      className={`mt-4 p-3 text-center rounded-lg ${
+        stylesByTone[tone] || stylesByTone.error
+      }`}
+    >
+      {children}
+    </div>
+  );
+};
 
 export default FeedbackMessage;

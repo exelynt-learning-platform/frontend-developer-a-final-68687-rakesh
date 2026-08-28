@@ -6,11 +6,11 @@ import {
   addEmployee,
   updateEmployee,
   deleteEmployee,
-  getCountries
+  getCountries,
 } from "../axios/userApi";
+
 import { getErrorMessage } from "../utils/errorMessage";
 
-// Get all employees
 export const fetchEmployees = createAsyncThunk(
   "employees/fetchEmployees",
   async (_, { rejectWithValue }) => {
@@ -24,7 +24,6 @@ export const fetchEmployees = createAsyncThunk(
   }
 );
 
-// Get employee by ID
 export const fetchEmployeeById = createAsyncThunk(
   "employees/fetchEmployeeById",
   async (id, { rejectWithValue }) => {
@@ -40,7 +39,6 @@ export const fetchEmployeeById = createAsyncThunk(
   }
 );
 
-// Create employee
 export const createEmployee = createAsyncThunk(
   "employees/createEmployee",
   async (employee, { rejectWithValue }) => {
@@ -54,7 +52,6 @@ export const createEmployee = createAsyncThunk(
   }
 );
 
-// Update employee
 export const editEmployee = createAsyncThunk(
   "employees/editEmployee",
   async ({ id, employee }, { rejectWithValue }) => {
@@ -68,13 +65,11 @@ export const editEmployee = createAsyncThunk(
   }
 );
 
-// Delete employee
 export const removeEmployee = createAsyncThunk(
   "employees/removeEmployee",
   async (id, { rejectWithValue }) => {
     try {
       await deleteEmployee(id);
-
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -84,7 +79,6 @@ export const removeEmployee = createAsyncThunk(
   }
 );
 
-// Get countries
 export const fetchCountries = createAsyncThunk(
   "employees/fetchCountries",
   async (_, { rejectWithValue }) => {
@@ -101,33 +95,25 @@ export const fetchCountries = createAsyncThunk(
 const initialState = {
   employees: [],
   countries: [],
-
   loading: false,
   countriesLoading: false,
-
   error: null,
   countriesError: null,
-
-  employeeLoading: false
+  employeeLoading: false,
 };
 
 const employeeSlice = createSlice({
   name: "employees",
-
   initialState,
 
   reducers: {
     clearError: (state) => {
       state.error = null;
-    }
+    },
   },
 
   extraReducers: (builder) => {
     builder
-
-      // =========================================
-      // GET ALL EMPLOYEES
-      // =========================================
 
       .addCase(fetchEmployees.pending, (state) => {
         state.loading = true;
@@ -145,10 +131,6 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      // =========================================
-      // GET EMPLOYEE BY ID
-      // =========================================
 
       .addCase(fetchEmployeeById.pending, (state) => {
         state.employeeLoading = true;
@@ -184,10 +166,6 @@ const employeeSlice = createSlice({
         state.error = action.payload;
       })
 
-      // =========================================
-      // CREATE EMPLOYEE
-      // =========================================
-
       .addCase(createEmployee.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -196,7 +174,10 @@ const employeeSlice = createSlice({
       .addCase(createEmployee.fulfilled, (state, action) => {
         state.loading = false;
 
-        if (action.payload && typeof action.payload === "object") {
+        if (
+          action.payload &&
+          typeof action.payload === "object"
+        ) {
           state.employees.push(action.payload);
         }
       })
@@ -206,10 +187,6 @@ const employeeSlice = createSlice({
         state.error = action.payload;
       })
 
-      // =========================================
-      // UPDATE EMPLOYEE
-      // =========================================
-
       .addCase(editEmployee.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -218,7 +195,10 @@ const employeeSlice = createSlice({
       .addCase(editEmployee.fulfilled, (state, action) => {
         state.loading = false;
 
-        if (!action.payload || typeof action.payload !== "object") {
+        if (
+          !action.payload ||
+          typeof action.payload !== "object"
+        ) {
           return;
         }
 
@@ -235,10 +215,6 @@ const employeeSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      // =========================================
-      // DELETE EMPLOYEE
-      // =========================================
 
       .addCase(removeEmployee.pending, (state) => {
         state.loading = true;
@@ -258,10 +234,6 @@ const employeeSlice = createSlice({
         state.error = action.payload;
       })
 
-      // =========================================
-      // GET COUNTRIES
-      // =========================================
-
       .addCase(fetchCountries.pending, (state) => {
         state.countriesLoading = true;
         state.countriesError = null;
@@ -269,14 +241,16 @@ const employeeSlice = createSlice({
 
       .addCase(fetchCountries.fulfilled, (state, action) => {
         state.countriesLoading = false;
-        state.countries = action.payload;
+        state.countries = Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
 
       .addCase(fetchCountries.rejected, (state, action) => {
         state.countriesLoading = false;
         state.countriesError = action.payload;
       });
-  }
+  },
 });
 
 export const { clearError } = employeeSlice.actions;
