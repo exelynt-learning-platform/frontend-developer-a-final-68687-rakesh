@@ -1,5 +1,6 @@
 
 import React from "react";
+import { validateEmployee } from "../utils/employeeValidation";
 
 const EmployeeForm = ({
   employeeData,
@@ -18,13 +19,7 @@ const EmployeeForm = ({
     : [];
   const countriesAvailable =
     !countriesLoading && availableCountries.length > 0;
-  const formIsValid = Boolean(
-    !loading &&
-      countrySelected &&
-      employeeData.state.trim() &&
-      employeeData.district.trim() &&
-      employeeData.department.trim()
-  );
+  const formIsValid = !loading && !validateEmployee(employeeData);
 
   return (
     <div className="w-full max-w-[500px] mx-auto border-2 border-blue-600 p-5 rounded-xl my-5">

@@ -1,5 +1,6 @@
 
 import React from "react";
+import EmployeeField from "./EmployeeField";
 
 const EmployeeList = ({
   employees,
@@ -26,40 +27,11 @@ const EmployeeList = ({
           className="flex flex-col lg:flex-row lg:justify-around lg:items-center gap-3 border-b-2 border-blue-600 py-4 mt-3"
         >
 
-          <p className="lg:w-[80px] text-center font-semibold">
-            <span className="lg:hidden font-bold">
-              ID:{" "}
-            </span>
-            {employee.id ?? "-"}
-          </p>
-
-          <p className="lg:w-[150px] text-center font-semibold">
-            <span className="lg:hidden font-bold">
-              Name:{" "}
-            </span>
-            {employee.name || "-"}
-          </p>
-
-          <p className="lg:w-[220px] text-center font-semibold break-all">
-            <span className="lg:hidden font-bold">
-              Email:{" "}
-            </span>
-            {employee.email || "-"}
-          </p>
-
-          <p className="lg:w-[130px] text-center font-semibold">
-            <span className="lg:hidden font-bold">
-              Mobile:{" "}
-            </span>
-            {employee.mobile || "-"}
-          </p>
-
-          <p className="lg:w-[130px] text-center font-semibold">
-            <span className="lg:hidden font-bold">
-              Country:{" "}
-            </span>
-            {employee.country || "-"}
-          </p>
+          <EmployeeField label="ID" value={employee.id} field="id" />
+          <EmployeeField label="Name" value={employee.name} field="name" />
+          <EmployeeField label="Email" value={employee.email} field="email" breakAll />
+          <EmployeeField label="Mobile" value={employee.mobile} field="mobile" />
+          <EmployeeField label="Country" value={employee.country} field="country" />
 
           <button
             onClick={() => editHandle(employee)}

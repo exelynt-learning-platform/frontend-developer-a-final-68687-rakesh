@@ -16,6 +16,7 @@ import EmployeeSearch from "./EmployeeSearch";
 import EmployeeList from "./EmployeeList";
 import FeedbackMessage from "./FeedbackMessage";
 import { getErrorMessage } from "../utils/errorMessage";
+import { validateEmployee } from "../utils/employeeValidation";
 
 const emptyEmployee = () => ({
   name: "",
@@ -85,18 +86,23 @@ const Users = () => {
     const { name, value } = e.target;
 
     if (name === "country") {
-      setEmployeeData({
-        ...employeeData,
-        country: value,
-        state: "",
-        district: "",
-      });
-    } else {
-      setEmployeeData({
-        ...employeeData,
-        [name]: value,
-      });
+      handleCountryChange(value);
+      return;
     }
+
+    setEmployeeData((currentData) => ({
+      ...currentData,
+      [name]: value,
+    }));
+  };
+
+  const handleCountryChange = (country) => {
+    setEmployeeData((currentData) => ({
+      ...currentData,
+      country,
+      state: "",
+      district: "",
+    }));
   };
 
   const resetForm = () => {
@@ -120,23 +126,9 @@ const Users = () => {
       return;
     }
 
-    if (!employeeData.country) {
-      setActionError("Please select a country.");
-      return;
-    }
-
-    if (!employeeData.state.trim()) {
-      setActionError("Please enter state.");
-      return;
-    }
-
-    if (!employeeData.district.trim()) {
-      setActionError("Please enter district.");
-      return;
-    }
-
-    if (!employeeData.department.trim()) {
-      setActionError("Please enter department.");
+    const validationError = validateEmployee(employeeData);
+    if (validationError) {
+      setActionError(validationError);
       return;
     }
 
