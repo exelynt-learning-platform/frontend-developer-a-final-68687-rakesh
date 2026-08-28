@@ -14,6 +14,7 @@ import {
 import EmployeeForm from "./EmployeeForm";
 import EmployeeSearch from "./EmployeeSearch";
 import EmployeeList from "./EmployeeList";
+import FeedbackMessage from "./FeedbackMessage";
 import { getErrorMessage } from "../utils/errorMessage";
 
 const emptyEmployee = () => ({
@@ -340,29 +341,27 @@ const Users = () => {
       </div>
 
       {error && (
-        <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
-          {typeof error === "string"
-            ? error
-            : error?.message || "Something went wrong."}
-        </div>
+        <FeedbackMessage>
+          {getErrorMessage(error, "Something went wrong.")}
+        </FeedbackMessage>
       )}
 
       {actionError && (
-        <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
+        <FeedbackMessage>
           {actionError}
-        </div>
+        </FeedbackMessage>
       )}
 
       {successMessage && (
-        <div className="mt-4 p-3 bg-green-100 text-green-700 text-center rounded-lg">
+        <FeedbackMessage tone="success">
           {successMessage}
-        </div>
+        </FeedbackMessage>
       )}
 
       {!countriesLoading && safeCountries.length === 0 && (
-        <div className="mt-4 p-3 bg-red-100 text-red-600 text-center rounded-lg">
+        <FeedbackMessage>
           Countries could not be loaded.
-        </div>
+        </FeedbackMessage>
       )}
 
       {showForm && (
